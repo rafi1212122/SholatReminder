@@ -14,47 +14,47 @@ import kotlin.math.tan
 
 class MainActivity : AppCompatActivity() {
 
+    private var dataSubuh = mutableListOf<String>()
+    private var dataDzuhur = mutableListOf<String>()
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-        val dataTanggal = arrayListOf<String>()
-        val dataSubuh = arrayListOf<String>()
-        val dataDzuhur = arrayListOf<String>()
-        val dataAshar = arrayListOf<String>()
-        val dataMagrib = arrayListOf<String>()
-        val dataIsya = arrayListOf<String>()
+        val rvWaktu: RecyclerView = findViewById(R.id.tanggal)
+        val rvSubuh: RecyclerView = findViewById(R.id.subuh)
+        val rvDzuhur: RecyclerView = findViewById(R.id.dzuhur)
+        val rvAshar: RecyclerView = findViewById(R.id.ashar)
+        val rvMaghrib: RecyclerView = findViewById(R.id.maghrib)
+        val rvIsya: RecyclerView = findViewById(R.id.isya)
 
-        val recyclerView: RecyclerView = findViewById(R.id.rv_time)
+        Config().getService().getModelWaktu().enqueue(object : Callback<JadwalModel>{
+            override fun onResponse(
+                call: Call<JadwalModel>,
+                response: Response<JadwalModel>
+            ) {
+                val hasil = response.body()!!
+                val hasil2 = hasil.results?.datetime
+                if (hasil2 != null) {
+                    for (i in hasil2){
+                        dataSubuh.add(i?.times?.fajr.toString())
+                        dataDzuhur.add(i?.times?.dhuhr.toString())
 
-        Config().service().getJadwalModel().enqueue(object : Callback<JadwalModel> {
+                        rvSubuh.adapter = Adapter(dataSubuh)
+                        rvDzuhur.adapter = Adapter(dataDzuhur)
 
-            override fun onResponse(call: Call<JadwalModel>, response: Response<JadwalModel>) {
-                val panggil1 = response.body()
-                val panggil2 = panggil1?.results?.datetime
-
-                for (list in panggil2!!.indices){
-                    val waktuSholat = panggil2[list]?.times
-                    val tanggal = panggil2[list]?.date
-
-                    dataTanggal.add(tanggal?.gregorian.toString())
-                    dataSubuh.add(waktuSholat?.fajr.toString())
-                    dataDzuhur.add(waktuSholat?.dhuhr.toString())
-                    dataAshar.add(waktuSholat?.asr.toString())
-                    dataMagrib.add(waktuSholat?.maghrib.toString())
-                    dataIsya.add(waktuSholat?.isha.toString())
-
-                    recyclerView.adapter = Adapter(dataTanggal, dataSubuh, dataDzuhur, dataAshar, dataMagrib, dataIsya)
-                    recyclerView.layoutManager = LinearLayoutManager(this@MainActivity)
-                    recyclerView.setHasFixedSize(true)
+                        rvSubuh.layoutManager = LinearLayoutManager(this@MainActivity)
+                        rvDzuhur.layoutManager = LinearLayoutManager(this@MainActivity)
+                    }
                 }
             }
 
             override fun onFailure(call: Call<JadwalModel>, t: Throwable) {
-                Toast.makeText(this@MainActivity, "$t", Toast.LENGTH_SHORT ).show()
+                val announce = "Masalah koneksi, 403"
+                Toast.makeText(this@MainActivity, announce, Toast.LENGTH_LONG).show()
             }
 
         })
-    }
 
+    }
 }
